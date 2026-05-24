@@ -10,6 +10,7 @@ enable_testing()
 add_library(topple_logic
     src/Counter.cpp
     src/Card.cpp
+    src/Deck.cpp
 )
 
 # Tell the compiler where to find header files
