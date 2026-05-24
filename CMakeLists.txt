@@ -6,9 +6,11 @@ set(CMAKE_CXX_STANDARD 11)
 # Enable testing
 enable_testing()
 
-# Create a library from your game logic
-# (This lets both main.cpp and test files use the same code)
-add_library(topple_logic src/Counter.cpp)
+# game logic. linked by both the game and the tests
+add_library(topple_logic
+    src/Counter.cpp
+    src/Card.cpp
+)
 
 # Tell the compiler where to find header files
 target_include_directories(topple_logic PUBLIC include)
