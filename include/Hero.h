@@ -20,7 +20,7 @@ public:
 
     // reset Block + Energy, draw a fresh hand
     virtual void onTurnStart();
-    // discard the hand
+    // discard the hand, then tick down statuses
     virtual void onTurnEnd();
 
     static const int DEFAULT_DRAW = 5;

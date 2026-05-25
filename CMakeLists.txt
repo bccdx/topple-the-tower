@@ -16,6 +16,9 @@ add_library(topple_logic
     src/Ironknight.cpp
     src/Strike.cpp
     src/Defend.cpp
+    src/Bash.cpp
+    src/Enemy.cpp
+    src/TowerGuard.cpp
 )
 
 # Tell the compiler where to find header files
