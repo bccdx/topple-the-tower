@@ -22,4 +22,5 @@ void Hero::onTurnStart() {
 
 void Hero::onTurnEnd() {
     deck_.discardHand();
+    Character::onTurnEnd();           // tick down debuffs
 }
