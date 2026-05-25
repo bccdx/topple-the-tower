@@ -12,6 +12,10 @@ add_library(topple_logic
     src/Card.cpp
     src/Deck.cpp
     src/Character.cpp
+    src/Hero.cpp
+    src/Ironknight.cpp
+    src/Strike.cpp
+    src/Defend.cpp
 )
 
 # Tell the compiler where to find header files
