@@ -11,6 +11,7 @@ add_library(topple_logic
     src/Counter.cpp
     src/Card.cpp
     src/Deck.cpp
+    src/Character.cpp
 )
 
 # Tell the compiler where to find header files
