@@ -1,4 +1,4 @@
-// include/PommelStrike.h
+// include/cards/ironknight/PommelStrike.h
 #ifndef POMMEL_STRIKE_H
 #define POMMEL_STRIKE_H
 

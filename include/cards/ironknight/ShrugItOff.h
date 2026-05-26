@@ -1,4 +1,4 @@
-// include/ShrugItOff.h
+// include/cards/ironknight/ShrugItOff.h
 #ifndef SHRUG_IT_OFF_H
 #define SHRUG_IT_OFF_H
 

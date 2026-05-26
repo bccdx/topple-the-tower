@@ -1,4 +1,4 @@
-// include/TwinStrike.h
+// include/cards/ironknight/TwinStrike.h
 #ifndef TWIN_STRIKE_H
 #define TWIN_STRIKE_H
 

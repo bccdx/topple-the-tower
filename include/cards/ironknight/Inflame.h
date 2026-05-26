@@ -1,4 +1,4 @@
-// include/Inflame.h
+// include/cards/ironknight/Inflame.h
 #ifndef INFLAME_H
 #define INFLAME_H
 

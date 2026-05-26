@@ -3,17 +3,14 @@
 #include "Hero.h"
 #include "Relic.h"
 
-#include "Bash.h"
 #include "BodySlam.h"
 #include "Cleave.h"
 #include "Clothesline.h"
-#include "Defend.h"
 #include "Entrench.h"
 #include "Inflame.h"
 #include "IronWave.h"
 #include "PommelStrike.h"
 #include "ShrugItOff.h"
-#include "Strike.h"
 #include "Thunderclap.h"
 #include "TwinStrike.h"
 
@@ -106,6 +103,7 @@ void Reward::generateOptions(int n) {
 
 bool Reward::pickCard(int index, Hero& hero) {
     if (index < 0 || index >= (int)options_.size()) return false;
+    if (options_[index] == NULL) return false;  // already picked
     hero.getDeck().addCard(options_[index]);
     options_[index] = NULL;
     return true;

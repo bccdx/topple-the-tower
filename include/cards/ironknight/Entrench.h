@@ -1,4 +1,4 @@
-// include/Entrench.h
+// include/cards/ironknight/Entrench.h
 #ifndef ENTRENCH_H
 #define ENTRENCH_H
 

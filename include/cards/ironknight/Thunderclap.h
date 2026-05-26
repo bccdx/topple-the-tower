@@ -1,4 +1,4 @@
-// include/Thunderclap.h
+// include/cards/ironknight/Thunderclap.h
 #ifndef THUNDERCLAP_H
 #define THUNDERCLAP_H
 

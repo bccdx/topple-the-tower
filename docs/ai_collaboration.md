@@ -19,3 +19,6 @@
 
 ## What I'd do differently next time
 - Consider the edge cases on the spec, and use more specific language in prompt to get desired outcomes, make a spreadsheet of card and relic choices and convert to markdown
+
+## Fresh-conversation review
+Started a new conversation, pasted the spec and the new files from the PR diff and asked for a senior engineer style review. it caught a crash bug where the card name was being read before the bounds check in main.cpp, so typing a number bigger than the option count would go out of bounds. fixed that by checking the index first. also added a cap to the input parsing loop to prevent int overflow on large inputs, added a null guard in pickCard so calling it twice on the same slot doesn't push null into the deck, removed dead includes for Bash/Strike/Defend from Reward.cpp since they aren't in the reward pool, fixed stale path comments in the card headers from before the folder reorganization, and made empty input re-prompt instead of silently skipping. rejected the TwinStrike finding about hitting a dead target on the second hit since it said it was latent and only matters when on-kill effects exist, leaving it for later.

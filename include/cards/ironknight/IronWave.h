@@ -1,4 +1,4 @@
-// include/IronWave.h
+// include/cards/ironknight/IronWave.h
 #ifndef IRON_WAVE_H
 #define IRON_WAVE_H
 

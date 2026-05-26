@@ -192,11 +192,17 @@ int main() {
             std::cout << "Enter 1-" << reward.optionCount() << " to pick, or 0 to skip > ";
             if (!std::getline(std::cin, input)) break;
 
+            if (input.size() == 0) {
+                std::cout << "Enter a number.\n";
+                continue;
+            }
+
             bool isNumber = true;
             int idx = 0;
             for (int i = 0; i < (int)input.size(); i++) {
                 if (input[i] < '0' || input[i] > '9') { isNumber = false; break; }
                 idx = idx * 10 + (input[i] - '0');
+                if (idx > 100) { idx = 100; break; }  // cap before int overflow
             }
 
             if (!isNumber) {
@@ -206,15 +212,14 @@ int main() {
             if (idx == 0) {
                 std::cout << "Skipped.\n";
                 chose = true;
+            } else if (idx < 1 || idx > reward.optionCount()) {
+                std::cout << "Invalid choice.\n";
             } else {
-                // save name before pick() clears the pointer
+                // read name before pickCard nulls the slot
                 std::string cardName = reward.getOptions()[idx - 1]->getName();
-                if (reward.pickCard(idx - 1, hero)) {
-                    std::cout << "Added " << cardName << " to your deck.\n";
-                    chose = true;
-                } else {
-                    std::cout << "Invalid choice.\n";
-                }
+                reward.pickCard(idx - 1, hero);
+                std::cout << "Added " << cardName << " to your deck.\n";
+                chose = true;
             }
         }
     } else {
