@@ -14,6 +14,7 @@ std::string intentTypeToString(IntentType t) {
 }
 
 Enemy::Enemy(const std::string& name, int maxHp) : Character(name, maxHp) {
+    tier_ = TIER_BASIC;
 }
 
 void Enemy::takeTurn(Hero& target, Battle& battle) {

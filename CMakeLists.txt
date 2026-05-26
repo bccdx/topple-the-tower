@@ -30,8 +30,28 @@ add_library(topple_logic
     src/Relic.cpp
     src/Reward.cpp
     src/characters/enemies/Enemy.cpp
-    src/characters/enemies/TowerGuard.cpp
+    src/characters/enemies/basic/Slime.cpp
+    src/characters/enemies/basic/Louse.cpp
+    src/characters/enemies/basic/Cultist.cpp
+    src/characters/enemies/basic/JawWorm.cpp
+    src/characters/enemies/basic/SpikeSlime.cpp
+    src/characters/enemies/elite/BruteGuard.cpp
+    src/characters/enemies/elite/StoneKnight.cpp
+    src/characters/enemies/elite/GoblinArcher.cpp
+    src/characters/enemies/elite/TowerGuard.cpp
+    src/characters/enemies/elite/GremlinNob.cpp
+    src/characters/enemies/elite/Lagavulin.cpp
+    src/characters/enemies/boss/CorruptKnight.cpp
+    src/characters/enemies/boss/Hexaghost.cpp
+    src/characters/enemies/boss/SlimeBoss.cpp
     src/Battle.cpp
+    src/rooms/Room.cpp
+    src/rooms/BattleRoom.cpp
+    src/rooms/EventRoom.cpp
+    src/rooms/TreasureRoom.cpp
+    src/rooms/CampfireRoom.cpp
+    src/rooms/ShopRoom.cpp
+    src/TowerMap.cpp
 )
 
 # Tell the compiler where to find header files
@@ -44,6 +64,10 @@ target_include_directories(topple_logic PUBLIC
     include/characters
     include/characters/heroes
     include/characters/enemies
+    include/characters/enemies/basic
+    include/characters/enemies/elite
+    include/characters/enemies/boss
+    include/rooms
 )
 
 # Main executable
@@ -70,3 +94,11 @@ add_test(NAME BattleTests COMMAND test_battle)
 add_executable(test_reward tests/test_reward.cpp)
 target_link_libraries(test_reward topple_logic)
 add_test(NAME RewardTests COMMAND test_reward)
+
+add_executable(test_tower_map tests/test_tower_map.cpp)
+target_link_libraries(test_tower_map topple_logic)
+add_test(NAME TowerMapTests COMMAND test_tower_map)
+
+add_executable(test_relics tests/test_relics.cpp)
+target_link_libraries(test_relics topple_logic)
+add_test(NAME RelicTests COMMAND test_relics)
