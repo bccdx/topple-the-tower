@@ -29,9 +29,19 @@ target_include_directories(topple_logic PUBLIC include)
 add_executable(topple_game src/main.cpp)
 target_link_libraries(topple_game topple_logic)
  
-# Test executable
-add_executable(run_tests tests/test_counter.cpp)
-target_link_libraries(run_tests topple_logic)
- 
-# Register with CTest
-add_test(NAME ToppleTests COMMAND run_tests)
+# tests, one per topic. each registered with ctest
+add_executable(test_counter tests/test_counter.cpp)
+target_link_libraries(test_counter topple_logic)
+add_test(NAME CounterTests COMMAND test_counter)
+
+add_executable(test_character tests/test_character.cpp)
+target_link_libraries(test_character topple_logic)
+add_test(NAME CharacterTests COMMAND test_character)
+
+add_executable(test_deck tests/test_deck.cpp)
+target_link_libraries(test_deck topple_logic)
+add_test(NAME DeckTests COMMAND test_deck)
+
+add_executable(test_battle tests/test_battle.cpp)
+target_link_libraries(test_battle topple_logic)
+add_test(NAME BattleTests COMMAND test_battle)
