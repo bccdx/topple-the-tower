@@ -32,7 +32,6 @@ void Reward::setGold(int amount) {
 }
 
 void Reward::awardRelic(Hero& hero) {
-    // pool of all obtainable relics
     std::string names[] = {
         "Burning Blood",
         "Vajra",
@@ -63,13 +62,11 @@ void Reward::awardRelic(Hero& hero) {
 }
 
 void Reward::generateOptions(int n) {
-    // clear any previous options
     for (int i = 0; i < (int)options_.size(); i++) {
         delete options_[i];
     }
     options_.clear();
 
-    // pool of obtainable cards
     std::vector<Card*> pool;
     pool.push_back(new IronWave());
     pool.push_back(new Cleave());
@@ -82,7 +79,6 @@ void Reward::generateOptions(int n) {
     pool.push_back(new BodySlam());
     pool.push_back(new Entrench());
 
-    // Fisher-Yates shuffle
     for (int i = (int)pool.size() - 1; i > 0; i--) {
         int j = rand() % (i + 1);
         Card* tmp = pool[i];
@@ -90,12 +86,10 @@ void Reward::generateOptions(int n) {
         pool[j] = tmp;
     }
 
-    // take first n (or all if n > pool size)
     int take = n < (int)pool.size() ? n : (int)pool.size();
     for (int i = 0; i < take; i++) {
         options_.push_back(pool[i]);
     }
-    // delete the rest
     for (int i = take; i < (int)pool.size(); i++) {
         delete pool[i];
     }

@@ -200,9 +200,12 @@ int main() {
             bool isNumber = true;
             int idx = 0;
             for (int i = 0; i < (int)input.size(); i++) {
-                if (input[i] < '0' || input[i] > '9') { isNumber = false; break; }
+                if (input[i] < '0' || input[i] > '9') {
+                    isNumber = false;
+                    break;
+                }
                 idx = idx * 10 + (input[i] - '0');
-                if (idx > 100) { idx = 100; break; }  // cap before int overflow
+                if (idx > 100) { idx = 100; break; }
             }
 
             if (!isNumber) {
@@ -215,7 +218,6 @@ int main() {
             } else if (idx < 1 || idx > reward.optionCount()) {
                 std::cout << "Invalid choice.\n";
             } else {
-                // read name before pickCard nulls the slot
                 std::string cardName = reward.getOptions()[idx - 1]->getName();
                 reward.pickCard(idx - 1, hero);
                 std::cout << "Added " << cardName << " to your deck.\n";
