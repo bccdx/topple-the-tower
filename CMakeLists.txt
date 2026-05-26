@@ -17,6 +17,17 @@ add_library(topple_logic
     src/Strike.cpp
     src/Defend.cpp
     src/Bash.cpp
+    src/IronWave.cpp
+    src/Cleave.cpp
+    src/PommelStrike.cpp
+    src/ShrugItOff.cpp
+    src/Clothesline.cpp
+    src/TwinStrike.cpp
+    src/Thunderclap.cpp
+    src/Inflame.cpp
+    src/BodySlam.cpp
+    src/Entrench.cpp
+    src/Relic.cpp
     src/Enemy.cpp
     src/TowerGuard.cpp
     src/Battle.cpp
