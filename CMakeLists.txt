@@ -66,3 +66,7 @@ add_test(NAME DeckTests COMMAND test_deck)
 add_executable(test_battle tests/test_battle.cpp)
 target_link_libraries(test_battle topple_logic)
 add_test(NAME BattleTests COMMAND test_battle)
+
+add_executable(test_reward tests/test_reward.cpp)
+target_link_libraries(test_reward topple_logic)
+add_test(NAME RewardTests COMMAND test_reward)
