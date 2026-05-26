@@ -3,6 +3,21 @@
 Hero::Hero(const std::string& name, int maxHp, int maxEnergy) : Character(name, maxHp) {
     maxEnergy_ = maxEnergy;
     currentEnergy_ = maxEnergy;
+    gold_ = 0;
+}
+
+Hero::~Hero() {
+    for (int i = 0; i < (int)relics_.size(); i++) {
+        delete relics_[i];
+    }
+}
+
+void Hero::earnGold(int amount) {
+    if (amount > 0) gold_ += amount;
+}
+
+void Hero::addRelic(Relic* relic) {
+    relics_.push_back(relic);
 }
 
 void Hero::spendEnergy(int amount) {
