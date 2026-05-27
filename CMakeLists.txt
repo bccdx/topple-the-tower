@@ -14,6 +14,17 @@ add_library(topple_logic
     src/characters/Character.cpp
     src/characters/heroes/Hero.cpp
     src/characters/heroes/Ironknight.cpp
+    src/characters/heroes/Assassin.cpp
+    src/cards/assassin/Dagger.cpp
+    src/cards/assassin/Neutralize.cpp
+    src/cards/assassin/Acrobatics.cpp
+    src/cards/assassin/DaggerSpray.cpp
+    src/cards/assassin/DaggerThrow.cpp
+    src/cards/assassin/DodgeAndRoll.cpp
+    src/cards/assassin/Footwork.cpp
+    src/cards/assassin/Prepared.cpp
+    src/cards/assassin/Backflip.cpp
+    src/cards/assassin/PoisonedDagger.cpp
     src/cards/basic/Strike.cpp
     src/cards/basic/Defend.cpp
     src/cards/ironknight/Bash.cpp
@@ -61,6 +72,7 @@ target_include_directories(topple_logic PUBLIC
     include/cards/basic
     include/cards/colorless
     include/cards/ironknight
+    include/cards/assassin
     include/characters
     include/characters/heroes
     include/characters/enemies

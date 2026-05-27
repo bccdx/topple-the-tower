@@ -2,6 +2,7 @@
 // terminal UI for a run through the tower. renders state and turns keystrokes into
 // Battle/Reward calls. all gameplay logic lives elsewhere so a future GUI only replaces this file
 
+#include "Assassin.h"
 #include "Battle.h"
 #include "BattleRoom.h"
 #include "Card.h"
@@ -59,6 +60,36 @@ static const char* HERO_SKILL[5] = {
     "            "
 };
 
+// assassin sprites — lighter, agile look
+static const char* ASSASSIN_NEUTRAL[5] = {
+    "   oO       ",
+    "   /|       ",
+    "   |\\      ",
+    "  /         ",
+    "            "
+};
+static const char* ASSASSIN_ATTACK[5] = {
+    "   oO       ",
+    "  /|-->     ",
+    "  /         ",
+    " /          ",
+    "            "
+};
+static const char* ASSASSIN_DEFEND[5] = {
+    "  oO.       ",
+    "  \\|/      ",
+    "  /|        ",
+    " /          ",
+    "            "
+};
+static const char* ASSASSIN_SKILL[5] = {
+    "  *O*       ",
+    "  /|\\      ",
+    "   |        ",
+    "  / \\      ",
+    "            "
+};
+
 enum HeroAnim { HERO_ANIM_NONE, HERO_ANIM_ATTACK, HERO_ANIM_DEFEND, HERO_ANIM_SKILL };
 
 static const char* BASIC_NEUTRAL[5] = {
@@ -111,6 +142,24 @@ static std::string padRight(const std::string& s, int width) {
     return s + std::string(width - (int)s.size(), ' ');
 }
 
+static const char** getHeroSprite(const Hero& h, HeroAnim anim) {
+    bool isAssassin = (h.getName() == "Assassin");
+    if (isAssassin) {
+        switch (anim) {
+            case HERO_ANIM_ATTACK: return ASSASSIN_ATTACK;
+            case HERO_ANIM_DEFEND: return ASSASSIN_DEFEND;
+            case HERO_ANIM_SKILL:  return ASSASSIN_SKILL;
+            default:               return ASSASSIN_NEUTRAL;
+        }
+    }
+    switch (anim) {
+        case HERO_ANIM_ATTACK: return HERO_ATTACK;
+        case HERO_ANIM_DEFEND: return HERO_DEFEND;
+        case HERO_ANIM_SKILL:  return HERO_SKILL;
+        default:               return HERO_NEUTRAL;
+    }
+}
+
 static const char** getEnemyNeutralSprite(const Enemy& e) {
     switch (e.getTier()) {
         case TIER_ELITE: return ELITE_NEUTRAL;
@@ -129,13 +178,7 @@ static const char** getEnemyAttackSprite(const Enemy& e) {
 
 static void printScene(const Battle& b, HeroAnim heroAnim, bool enemyAtk) {
     const int COL = 22;
-    const char** heroSpr;
-    switch (heroAnim) {
-        case HERO_ANIM_ATTACK: heroSpr = HERO_ATTACK; break;
-        case HERO_ANIM_DEFEND: heroSpr = HERO_DEFEND; break;
-        case HERO_ANIM_SKILL:  heroSpr = HERO_SKILL;  break;
-        default:               heroSpr = HERO_NEUTRAL; break;
-    }
+    const char** heroSpr = getHeroSprite(b.getHero(), heroAnim);
     const char** enemySpr = enemyAtk ? getEnemyAttackSprite(b.getEnemy())
                                      : getEnemyNeutralSprite(b.getEnemy());
     std::cout << padRight("  " + b.getHero().getName(), COL) << b.getEnemy().getName() << "\n";
@@ -247,7 +290,7 @@ void printBattle(const Battle& b, int floor, int totalFloors,
 
 // run the card pick reward loop. returns false if stdin closed
 bool doCardReward(Reward& reward, Hero& hero) {
-    reward.generateOptions(3);
+    reward.generateOptions(3, hero);
     std::cout << "== Choose a card to add to your deck ==\n";
     const std::vector<Card*>& opts = reward.getOptions();
     for (int i = 0; i < (int)opts.size(); i++) {
@@ -282,10 +325,32 @@ bool doCardReward(Reward& reward, Hero& hero) {
     }
 }
 
+// hero selection screen. returns a heap-allocated Hero* the caller owns
+static Hero* selectHero() {
+    clearScreen();
+    std::cout << "==============================================\n";
+    std::cout << " Topple the Tower\n";
+    std::cout << "==============================================\n\n";
+    std::cout << "Choose your hero:\n\n";
+    std::cout << "  1) Ironknight  80 HP  |  armored warrior, heals after every fight\n";
+    std::cout << "  2) Assassin    70 HP  |  quick and precise, draws 2 extra cards each combat\n\n";
+
+    std::string input;
+    while (true) {
+        std::cout << "Enter 1 or 2 > ";
+        if (!std::getline(std::cin, input)) return NULL;
+        if (input == "1") return new Ironknight();
+        if (input == "2") return new Assassin();
+        std::cout << "Enter 1 or 2.\n";
+    }
+}
+
 int main() {
     srand((unsigned int)time(0));
 
-    Ironknight hero;
+    Hero* hero = selectHero();
+    if (hero == NULL) return 0;
+
     TowerMap map;
 
     std::string flash;
@@ -305,7 +370,7 @@ int main() {
         }
 
         Enemy* enemy = room->createEnemy();
-        Battle battle(hero, enemy);
+        Battle battle(*hero, enemy);
         battle.start();
 
         while (battle.getState() == BATTLE_ONGOING) {
@@ -361,30 +426,35 @@ int main() {
         clearScreen();
         if (battle.getState() == BATTLE_HERO_LOST) {
             std::cout << "*** Defeat. The tower stands. ***\n";
+            delete hero;
             return 0;
         }
 
         // hero won this floor
         std::cout << "*** Floor " << (floor + 1) << " cleared! ***\n\n";
 
-        hero.onCombatEnd();
-        std::cout << "Burning Blood: healed " << Ironknight::COMBAT_END_HEAL << " HP. ("
-                  << hero.getCurrentHp() << "/" << hero.getMaxHp() << ")\n\n";
+        int hpBefore = hero->getCurrentHp();
+        hero->onCombatEnd();
+        int healed = hero->getCurrentHp() - hpBefore;
+        if (healed > 0) {
+            std::cout << "Healed " << healed << " HP. ";
+        }
+        std::cout << "(" << hero->getCurrentHp() << "/" << hero->getMaxHp() << ")\n\n";
 
         Reward reward;
         reward.setGold(20 + floor * 5);
         std::cout << "You earned " << reward.getGold() << " gold.\n";
-        hero.earnGold(reward.getGold());
+        hero->earnGold(reward.getGold());
 
-        reward.awardRelic(hero);
-        const std::vector<Relic*>& relics = hero.getRelics();
+        reward.awardRelic(*hero);
+        const std::vector<Relic*>& relics = hero->getRelics();
         const Relic& r = *relics.back();
         std::cout << "You found " << r.getName() << ": " << r.getDescription() << "\n\n";
 
-        if (!doCardReward(reward, hero)) goto run_over;
+        if (!doCardReward(reward, *hero)) goto run_over;
 
         if (floor < map.roomCount() - 1) {
-            hero.getDeck().resetForCombat();
+            hero->getDeck().resetForCombat();
             std::cout << "\nPress Enter to continue to the next floor...";
             if (!std::getline(std::cin, input)) goto run_over;
         }
@@ -392,8 +462,10 @@ int main() {
 
     clearScreen();
     std::cout << "*** You've toppled the tower! ***\n";
+    delete hero;
     return 0;
 
 run_over:
+    delete hero;
     return 0;
 }

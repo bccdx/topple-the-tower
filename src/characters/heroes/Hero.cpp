@@ -68,9 +68,6 @@ void Hero::onCombatStart(Enemy& enemy) {
     redSkullActive_ = false;
     for (int i = 0; i < (int)relics_.size(); i++) {
         switch (relics_[i]->getRelicType()) {
-            case RELIC_BURNING_BLOOD:
-                heal(6);
-                break;
             case RELIC_VAJRA:
                 applyStatus(STATUS_STRENGTH, 1);
                 break;
@@ -83,6 +80,9 @@ void Hero::onCombatStart(Enemy& enemy) {
             case RELIC_ODDLY_SMOOTH_STONE:
                 applyStatus(STATUS_DEXTERITY, 1);
                 break;
+            case RELIC_RING_OF_THE_SNAKE:
+                deck_.draw(2);
+                break;
             default:
                 break;
         }
@@ -90,12 +90,18 @@ void Hero::onCombatStart(Enemy& enemy) {
 }
 
 void Hero::onCombatEnd() {
-    // Meat on the Bone: heal 12 if at or below 50% HP
+    // check eligibility before any healing so Burning Blood doesn't disqualify Meat on the Bone
+    bool meatEligible = (currentHp_ * 2 <= maxHp_);
     for (int i = 0; i < (int)relics_.size(); i++) {
-        if (relics_[i]->getRelicType() == RELIC_MEAT_ON_THE_BONE) {
-            if (currentHp_ * 2 <= maxHp_) {
-                heal(12);
-            }
+        switch (relics_[i]->getRelicType()) {
+            case RELIC_BURNING_BLOOD:
+                heal(6);
+                break;
+            case RELIC_MEAT_ON_THE_BONE:
+                if (meatEligible) heal(12);
+                break;
+            default:
+                break;
         }
     }
 }

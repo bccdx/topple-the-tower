@@ -3,6 +3,7 @@
 #include "Hero.h"
 #include "Relic.h"
 
+// ironknight cards
 #include "BodySlam.h"
 #include "Cleave.h"
 #include "Clothesline.h"
@@ -13,6 +14,18 @@
 #include "ShrugItOff.h"
 #include "Thunderclap.h"
 #include "TwinStrike.h"
+
+// assassin cards
+#include "Acrobatics.h"
+#include "Backflip.h"
+#include "Dagger.h"
+#include "DaggerSpray.h"
+#include "DaggerThrow.h"
+#include "DodgeAndRoll.h"
+#include "Footwork.h"
+#include "Neutralize.h"
+#include "PoisonedDagger.h"
+#include "Prepared.h"
 
 #include <cstdlib>
 #include <string>
@@ -54,23 +67,37 @@ void Reward::awardRelic(Hero& hero) {
     hero.addRelic(new Relic(pool[idx].type, pool[idx].name, pool[idx].desc));
 }
 
-void Reward::generateOptions(int n) {
+void Reward::generateOptions(int n, const Hero& hero) {
     for (int i = 0; i < (int)options_.size(); i++) {
         delete options_[i];
     }
     options_.clear();
 
     std::vector<Card*> pool;
-    pool.push_back(new IronWave());
-    pool.push_back(new Cleave());
-    pool.push_back(new PommelStrike());
-    pool.push_back(new ShrugItOff());
-    pool.push_back(new Clothesline());
-    pool.push_back(new TwinStrike());
-    pool.push_back(new Thunderclap());
-    pool.push_back(new Inflame());
-    pool.push_back(new BodySlam());
-    pool.push_back(new Entrench());
+
+    if (hero.getName() == "Assassin") {
+        pool.push_back(new Dagger());
+        pool.push_back(new Neutralize());
+        pool.push_back(new Acrobatics());
+        pool.push_back(new DaggerSpray());
+        pool.push_back(new DaggerThrow());
+        pool.push_back(new DodgeAndRoll());
+        pool.push_back(new Footwork());
+        pool.push_back(new Prepared());
+        pool.push_back(new Backflip());
+        pool.push_back(new PoisonedDagger());
+    } else {
+        pool.push_back(new IronWave());
+        pool.push_back(new Cleave());
+        pool.push_back(new PommelStrike());
+        pool.push_back(new ShrugItOff());
+        pool.push_back(new Clothesline());
+        pool.push_back(new TwinStrike());
+        pool.push_back(new Thunderclap());
+        pool.push_back(new Inflame());
+        pool.push_back(new BodySlam());
+        pool.push_back(new Entrench());
+    }
 
     for (int i = (int)pool.size() - 1; i > 0; i--) {
         int j = rand() % (i + 1);

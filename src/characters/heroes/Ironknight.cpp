@@ -2,12 +2,8 @@
 
 #include "Bash.h"
 #include "Defend.h"
+#include "Relic.h"
 #include "Strike.h"
-
-void Ironknight::onCombatEnd() {
-    Hero::onCombatEnd();    // relic effects first
-    heal(COMBAT_END_HEAL);
-}
 
 Ironknight::Ironknight() : Hero("Ironknight", STARTING_HP, STARTING_ENERGY) {
     for (int i = 0; i < NUM_STRIKES; i++) {
@@ -20,4 +16,6 @@ Ironknight::Ironknight() : Hero("Ironknight", STARTING_HP, STARTING_ENERGY) {
         deck_.addCard(new Bash());
     }
     deck_.shuffleDrawPile();
+
+    addRelic(new Relic(RELIC_BURNING_BLOOD, "Burning Blood", "Heal 6 HP at the end of each combat"));
 }

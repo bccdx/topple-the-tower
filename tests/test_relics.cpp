@@ -34,15 +34,13 @@ void test_vajra() {
     std::cout << "PASSED: test_vajra\n";
 }
 
-// Burning Blood (relic): hero heals 6 at start of combat
+// Burning Blood (starter relic): hero heals 6 at end of combat
 void test_burning_blood_relic() {
     Ironknight hero;
     hero.takeDamage(20);
     int hpBefore = hero.getCurrentHp();
-    giveRelic(hero, RELIC_BURNING_BLOOD);
-    Slime* enemy = new Slime();
-    Battle battle(hero, enemy);
-    battle.start();
+    // Ironknight starts with Burning Blood — no need to add it manually
+    hero.onCombatEnd();
     assert(hero.getCurrentHp() == hpBefore + 6);
     std::cout << "PASSED: test_burning_blood_relic\n";
 }

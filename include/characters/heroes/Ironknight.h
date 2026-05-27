@@ -9,7 +9,6 @@
 class Ironknight : public Hero {
 public:
     Ironknight();
-    virtual void onCombatEnd();
 
     static const int STARTING_HP     = 80;
     static const int STARTING_ENERGY = 3;

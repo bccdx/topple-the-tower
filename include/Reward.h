@@ -15,7 +15,7 @@ public:
 
     void setGold(int amount);
     void awardRelic(Hero& hero);        // picks a random relic from the pool and gives it to the hero
-    void generateOptions(int n);        // fill options_ with n random cards from the pool
+    void generateOptions(int n, const Hero& hero);  // fill options_ with n random cards from the hero's pool
     bool pickCard(int index, Hero& hero); // returns false if index is out of range
 
     int getGold() const                        { return gold_; }
