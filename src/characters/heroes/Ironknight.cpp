@@ -2,6 +2,7 @@
 
 #include "Bash.h"
 #include "Defend.h"
+#include "Relic.h"
 #include "Strike.h"
 
 Ironknight::Ironknight() : Hero("Ironknight", STARTING_HP, STARTING_ENERGY) {
@@ -15,4 +16,6 @@ Ironknight::Ironknight() : Hero("Ironknight", STARTING_HP, STARTING_ENERGY) {
         deck_.addCard(new Bash());
     }
     deck_.shuffleDrawPile();
+
+    addRelic(new Relic(RELIC_BURNING_BLOOD, "Burning Blood", "Heal 6 HP at the end of each combat"));
 }

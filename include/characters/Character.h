@@ -39,7 +39,7 @@ public:
     void removeStatus(StatusType s);
 
     // stat mutations
-    void takeDamage(int amount);     // respects current Block
+    virtual void takeDamage(int amount);  // respects current Block
     void takeHpLoss(int amount);     // bypasses Block
     void gainBlock(int amount);      // respects Dexterity / Frail
     void heal(int amount);

@@ -9,6 +9,8 @@
 class Hero;
 class Battle;
 
+enum EnemyTier { TIER_BASIC, TIER_ELITE, TIER_BOSS };
+
 // enemies telegraph their next move so the player can plan
 enum IntentType { INTENT_ATTACK, INTENT_DEFEND, INTENT_BUFF, INTENT_DEBUFF, INTENT_UNKNOWN };
 
@@ -32,6 +34,7 @@ public:
     Enemy(const std::string& name, int maxHp);
 
     const Intent& getIntent() const { return intent_; }
+    EnemyTier getTier() const { return tier_; }
 
     // decide what the enemy will do next. called at construction and after each
     // enemy turn so the player can always see the intent
@@ -42,6 +45,7 @@ public:
 
 protected:
     Intent intent_;
+    EnemyTier tier_;
 };
 
 #endif

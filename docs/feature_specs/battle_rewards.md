@@ -67,13 +67,15 @@ const std::vector<Relic*>& Hero::getRelics() const;
 4. `generateOptions(0)` — no options, `pickCard` always returns false
 5. picking index 0 and index `optionCount - 1` both work (no off-by-one)
 
-## Three tests (English version)
+## Three tests
 
 - normal: generate 3 options, pick index 1, hero's draw pile grows by 1
 - edge: `pickCard(99, hero)` returns false, deck unchanged
 - boundary: pick index 0 works, pick index `optionCount - 1` works
 
-## Card pool (10 non-basic cards)
+## Additional requirements 
+
+### Card pool (10 non-basic cards)
 
 | Card | Cost | Effect |
 |---|---|---|
@@ -88,7 +90,7 @@ const std::vector<Relic*>& Hero::getRelics() const;
 | Body Slam | 1 | deal damage equal to current block |
 | Entrench | 2 | gain block equal to current block |
 
-## Relic pool (10 relics)
+### Relic pool (10 relics)
 
 | Relic | Effect (stubbed) |
 |---|---|
@@ -103,9 +105,9 @@ const std::vector<Relic*>& Hero::getRelics() const;
 | Oddly Smooth Stone | at the start of each combat, gain 1 Dexterity |
 | Paper Krane | reduce all incoming attack damage by 1 |
 
-## Design decisions
+## Design decisions / tbd
 
-`Reward` owns the card options as pointers. Gold is just an int. Relics go straight
+`Reward` owns the card options as pointers. Gold is an int. Relics go straight
 to the hero in `awardRelic()` so Reward doesn't need to hold one.
 
 `pickCard()` moves one card pointer into the hero's deck and sets that slot to `NULL`

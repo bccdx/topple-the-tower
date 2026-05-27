@@ -28,6 +28,10 @@ public:
     void discard(Card* card);
     void exhaust(Card* card);
 
+    // move hand and discard back to draw pile and shuffle. call between fights
+    // exhausted cards stay out for the whole run
+    void resetForCombat();
+
     const std::vector<Card*>& getHand() const        { return hand_; }
     const std::vector<Card*>& getDrawPile() const    { return drawPile_; }
     const std::vector<Card*>& getDiscardPile() const { return discardPile_; }

@@ -12,7 +12,7 @@ void test_reward_normal() {
     int before = hero.getDeck().drawPileSize();
 
     Reward reward;
-    reward.generateOptions(3);
+    reward.generateOptions(3, hero);
     assert(reward.optionCount() == 3);
 
     bool ok = reward.pickCard(1, hero);
@@ -26,7 +26,7 @@ void test_reward_skip() {
     int before = hero.getDeck().drawPileSize();
 
     Reward reward;
-    reward.generateOptions(3);
+    reward.generateOptions(3, hero);
 
     assert(!reward.pickCard(99, hero));
     assert(hero.getDeck().drawPileSize() == before);
@@ -42,7 +42,7 @@ void test_reward_boundary() {
         Ironknight hero;
         int before = hero.getDeck().drawPileSize();
         Reward reward;
-        reward.generateOptions(3);
+        reward.generateOptions(3, hero);
         assert(reward.pickCard(0, hero));
         assert(hero.getDeck().drawPileSize() == before + 1);
     }
@@ -51,7 +51,7 @@ void test_reward_boundary() {
         Ironknight hero;
         int before = hero.getDeck().drawPileSize();
         Reward reward;
-        reward.generateOptions(3);
+        reward.generateOptions(3, hero);
         assert(reward.pickCard(reward.optionCount() - 1, hero));
         assert(hero.getDeck().drawPileSize() == before + 1);
     }
