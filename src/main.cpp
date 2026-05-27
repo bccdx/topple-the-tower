@@ -8,6 +8,8 @@
 #include "Enemy.h"
 #include "Hero.h"
 #include "Ironknight.h"
+#include "Relic.h"
+#include "Reward.h"
 #include "TowerGuard.h"
 
 #include <cstdlib>
@@ -162,7 +164,66 @@ int main() {
 
     printBattle(battle);
     if (battle.getState() == BATTLE_HERO_WON) {
-        std::cout << "*** Victory! The tower trembles. ***\n";
+        std::cout << "*** Victory! The tower trembles. ***\n\n";
+
+        Reward reward;
+        reward.setGold(25);
+        std::cout << "You earned " << reward.getGold() << " gold.\n";
+        hero.earnGold(reward.getGold());
+
+        reward.awardRelic(hero);
+        const std::vector<Relic*>& relics = hero.getRelics();
+        const Relic& r = *relics.back();
+        std::cout << "You found " << r.getName() << ": " << r.getDescription() << "\n\n";
+
+        reward.generateOptions(3);
+        std::cout << "== Choose a card to add to your deck ==\n";
+        const std::vector<Card*>& opts = reward.getOptions();
+        for (int i = 0; i < (int)opts.size(); i++) {
+            const Card& c = *opts[i];
+            std::cout << "  " << (i + 1) << ") [" << c.getCost() << "] "
+                      << c.getName() << " - " << c.getDescription() << "\n";
+        }
+        std::cout << "  0) Skip\n\n";
+
+        std::string input;
+        bool chose = false;
+        while (!chose) {
+            std::cout << "Enter 1-" << reward.optionCount() << " to pick, or 0 to skip > ";
+            if (!std::getline(std::cin, input)) break;
+
+            if (input.size() == 0) {
+                std::cout << "Enter a number.\n";
+                continue;
+            }
+
+            bool isNumber = true;
+            int idx = 0;
+            for (int i = 0; i < (int)input.size(); i++) {
+                if (input[i] < '0' || input[i] > '9') {
+                    isNumber = false;
+                    break;
+                }
+                idx = idx * 10 + (input[i] - '0');
+                if (idx > 100) { idx = 100; break; }
+            }
+
+            if (!isNumber) {
+                std::cout << "Enter a number.\n";
+                continue;
+            }
+            if (idx == 0) {
+                std::cout << "Skipped.\n";
+                chose = true;
+            } else if (idx < 1 || idx > reward.optionCount()) {
+                std::cout << "Invalid choice.\n";
+            } else {
+                std::string cardName = reward.getOptions()[idx - 1]->getName();
+                reward.pickCard(idx - 1, hero);
+                std::cout << "Added " << cardName << " to your deck.\n";
+                chose = true;
+            }
+        }
     } else {
         std::cout << "*** Defeat. The tower stands. ***\n";
     }
