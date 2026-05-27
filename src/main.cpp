@@ -1,8 +1,9 @@
 // src/main.cpp
-// terminal UI for a single battle. just renders state and turns keystrokes into Battle calls.
-// all gameplay logic lives in Battle/Hero/Enemy/Deck/Card, so a future GUI only replaces this file
+// terminal UI for a run through the tower. renders state and turns keystrokes into
+// Battle/Reward calls. all gameplay logic lives elsewhere so a future GUI only replaces this file
 
 #include "Battle.h"
+#include "BattleRoom.h"
 #include "Card.h"
 #include "Character.h"
 #include "Enemy.h"
@@ -10,10 +11,12 @@
 #include "Ironknight.h"
 #include "Relic.h"
 #include "Reward.h"
-#include "TowerGuard.h"
+#include "Room.h"
+#include "TowerMap.h"
 
 #include <cstdlib>
 #include <ctime>
+#include <iomanip>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -39,8 +42,8 @@ void printStatuses(const Character& c) {
 void printEnemy(const Enemy& e) {
     std::cout << "== Enemy ==\n";
     std::cout << "  " << e.getName()
-              << "    HP " << e.getCurrentHp() << "/" << e.getMaxHp()
-              << "    Block " << e.getBlock() << "\n";
+              << "    HP " << std::setw(3) << e.getCurrentHp() << "/" << e.getMaxHp()
+              << "    Block " << std::setw(3) << e.getBlock() << "\n";
     std::cout << "  Statuses: ";
     printStatuses(e);
     std::cout << "\n";
@@ -60,16 +63,16 @@ void printEnemy(const Enemy& e) {
 
 void printHero(const Hero& h) {
     std::cout << "== " << h.getName() << " ==\n";
-    std::cout << "  HP " << h.getCurrentHp() << "/" << h.getMaxHp()
-              << "    Block " << h.getBlock()
+    std::cout << "  HP " << std::setw(3) << h.getCurrentHp() << "/" << h.getMaxHp()
+              << "    Block " << std::setw(3) << h.getBlock()
               << "    Energy " << h.getCurrentEnergy() << "/" << h.getMaxEnergy()
               << "\n";
     std::cout << "  Statuses: ";
     printStatuses(h);
     std::cout << "\n";
-    std::cout << "  Draw " << h.getDeck().drawPileSize()
-              << "  |  Discard " << h.getDeck().discardPileSize()
-              << "  |  Exhaust " << h.getDeck().exhaustPileSize()
+    std::cout << "  Draw " << std::setw(2) << h.getDeck().drawPileSize()
+              << "  |  Discard " << std::setw(2) << h.getDeck().discardPileSize()
+              << "  |  Exhaust " << std::setw(2) << h.getDeck().exhaustPileSize()
               << "\n";
 }
 
@@ -90,22 +93,24 @@ void printPlayedThisTurn(const Battle& b) {
 
 void printHand(const Hero& h) {
     const std::vector<Card*>& hand = h.getDeck().getHand();
+    const int HAND_SLOTS = 10;
     std::cout << "== Hand ==\n";
-    if (hand.size() == 0) {
-        std::cout << "  (empty)\n";
-        return;
-    }
-    for (int i = 0; i < (int)hand.size(); i++) {
-        const Card& c = *hand[i];
-        std::cout << "  " << (i + 1) << ") [" << c.getCost() << "] "
-                  << c.getName() << " - " << c.getDescription() << "\n";
+    for (int i = 0; i < HAND_SLOTS; i++) {
+        if (i < (int)hand.size()) {
+            const Card& c = *hand[i];
+            std::cout << "  " << (i + 1) << ") [" << c.getCost() << "] "
+                      << c.getName() << " - " << c.getDescription() << "\n";
+        } else {
+            std::cout << "\n";
+        }
     }
 }
 
-void printBattle(const Battle& b) {
+void printBattle(const Battle& b, int floor, int totalFloors) {
     clearScreen();
     std::cout << "==============================================\n";
-    std::cout << " Topple the Tower    Turn " << b.getTurnNumber() << "\n";
+    std::cout << " Topple the Tower    Floor " << floor << "/" << totalFloors
+              << "    Turn " << b.getTurnNumber() << "\n";
     std::cout << "==============================================\n\n";
     printEnemy(b.getEnemy());
     std::cout << "\n";
@@ -117,57 +122,119 @@ void printBattle(const Battle& b) {
     std::cout << "\n";
 }
 
+// run the card pick reward loop. returns false if stdin closed
+bool doCardReward(Reward& reward, Hero& hero) {
+    reward.generateOptions(3);
+    std::cout << "== Choose a card to add to your deck ==\n";
+    const std::vector<Card*>& opts = reward.getOptions();
+    for (int i = 0; i < (int)opts.size(); i++) {
+        const Card& c = *opts[i];
+        std::cout << "  " << (i + 1) << ") [" << c.getCost() << "] "
+                  << c.getName() << " - " << c.getDescription() << "\n";
+    }
+    std::cout << "  0) Skip\n\n";
+
+    std::string input;
+    while (true) {
+        std::cout << "Enter 1-" << reward.optionCount() << " to pick, or 0 to skip > ";
+        if (!std::getline(std::cin, input)) return false;
+        if (input.size() == 0) { std::cout << "Enter a number.\n"; continue; }
+
+        bool isNumber = true;
+        int idx = 0;
+        for (int i = 0; i < (int)input.size(); i++) {
+            if (input[i] < '0' || input[i] > '9') { isNumber = false; break; }
+            idx = idx * 10 + (input[i] - '0');
+            if (idx > 100) { idx = 100; break; }
+        }
+
+        if (!isNumber) { std::cout << "Enter a number.\n"; continue; }
+        if (idx == 0) { std::cout << "Skipped.\n"; return true; }
+        if (idx < 1 || idx > reward.optionCount()) { std::cout << "Invalid choice.\n"; continue; }
+
+        std::string cardName = reward.getOptions()[idx - 1]->getName();
+        reward.pickCard(idx - 1, hero);
+        std::cout << "Added " << cardName << " to your deck.\n";
+        return true;
+    }
+}
+
 int main() {
-    // seed the random number generator once for the whole program
     srand((unsigned int)time(0));
 
     Ironknight hero;
-    Battle battle(hero, new TowerGuard());
-    battle.start();
+    TowerMap map;
 
     std::string flash;
     std::string input;
 
-    while (battle.getState() == BATTLE_ONGOING) {
-        printBattle(battle);
-        if (flash != "") {
-            std::cout << ">> " << flash << "\n\n";
-            flash = "";
-        }
-        std::cout << "Enter card # to play, or 'e' to end turn > ";
-        if (!std::getline(std::cin, input)) break;
-        if (input == "") continue;
+    for (int floor = 0; floor < map.roomCount(); floor++) {
+        const Room* room = map.getRoom(floor);
 
-        if (input == "e" || input == "E") {
-            battle.endHeroTurn();
+        if (room->getType() != ROOM_BATTLE) {
+            // other room types aren't implemented yet
+            clearScreen();
+            std::cout << room->getDescription() << "\n";
+            std::cout << "(this room type isn't implemented yet)\n\n";
+            std::cout << "Press Enter to continue...";
+            std::getline(std::cin, input);
             continue;
         }
 
-        // parse the input as a positive integer (digits only)
-        bool isNumber = true;
-        int idx = 0;
-        for (int i = 0; i < (int)input.size(); i++) {
-            if (input[i] < '0' || input[i] > '9') {
-                isNumber = false;
-                break;
+        Enemy* enemy = room->createEnemy();
+        Battle battle(hero, enemy);
+        battle.start();
+
+        while (battle.getState() == BATTLE_ONGOING) {
+            printBattle(battle, floor + 1, map.roomCount());
+            if (flash != "") {
+                std::cout << "  >> " << flash << "\n";
+                flash = "";
+            } else {
+                std::cout << "\n";
             }
-            idx = idx * 10 + (input[i] - '0');
+            std::cout << "Enter card # to play, or 'e' to end turn > ";
+            if (!std::getline(std::cin, input)) goto run_over;
+            if (input == "") continue;
+
+            if (input == "e" || input == "E") {
+                battle.endHeroTurn();
+                continue;
+            }
+
+            bool isNumber = true;
+            int idx = 0;
+            for (int i = 0; i < (int)input.size(); i++) {
+                if (input[i] < '0' || input[i] > '9') { isNumber = false; break; }
+                idx = idx * 10 + (input[i] - '0');
+                if (idx > 100) { idx = 100; break; }
+            }
+
+            if (!isNumber) {
+                flash = "Unrecognized input. Type a card number or 'e'.";
+            } else {
+                PlayResult result = battle.playCardFromHand(idx - 1);
+                if (!result.success) flash = result.message;
+            }
         }
 
-        if (!isNumber) {
-            flash = "Unrecognized input. Type a card number or 'e'.";
-        } else {
-            PlayResult result = battle.playCardFromHand(idx - 1);
-            if (!result.success) flash = result.message;
-        }
-    }
+        printBattle(battle, floor + 1, map.roomCount());
 
-    printBattle(battle);
-    if (battle.getState() == BATTLE_HERO_WON) {
-        std::cout << "*** Victory! The tower trembles. ***\n\n";
+        clearScreen();
+        if (battle.getState() == BATTLE_HERO_LOST) {
+            std::cout << "*** Defeat. The tower stands. ***\n";
+            return 0;
+        }
+
+        // hero won this floor
+        std::cout << "*** Floor " << (floor + 1) << " cleared! ***\n\n";
+
+        hero.onCombatEnd();
+        std::cout << "Burning Blood: healed " << Ironknight::COMBAT_END_HEAL << " HP. ("
+                  << hero.getCurrentHp() << "/" << hero.getMaxHp() << ")\n\n";
 
         Reward reward;
-        reward.setGold(25);
+        reward.setGold(20 + floor * 5);
         std::cout << "You earned " << reward.getGold() << " gold.\n";
         hero.earnGold(reward.getGold());
 
@@ -176,56 +243,19 @@ int main() {
         const Relic& r = *relics.back();
         std::cout << "You found " << r.getName() << ": " << r.getDescription() << "\n\n";
 
-        reward.generateOptions(3);
-        std::cout << "== Choose a card to add to your deck ==\n";
-        const std::vector<Card*>& opts = reward.getOptions();
-        for (int i = 0; i < (int)opts.size(); i++) {
-            const Card& c = *opts[i];
-            std::cout << "  " << (i + 1) << ") [" << c.getCost() << "] "
-                      << c.getName() << " - " << c.getDescription() << "\n";
+        if (!doCardReward(reward, hero)) goto run_over;
+
+        if (floor < map.roomCount() - 1) {
+            hero.getDeck().resetForCombat();
+            std::cout << "\nPress Enter to continue to the next floor...";
+            if (!std::getline(std::cin, input)) goto run_over;
         }
-        std::cout << "  0) Skip\n\n";
-
-        std::string input;
-        bool chose = false;
-        while (!chose) {
-            std::cout << "Enter 1-" << reward.optionCount() << " to pick, or 0 to skip > ";
-            if (!std::getline(std::cin, input)) break;
-
-            if (input.size() == 0) {
-                std::cout << "Enter a number.\n";
-                continue;
-            }
-
-            bool isNumber = true;
-            int idx = 0;
-            for (int i = 0; i < (int)input.size(); i++) {
-                if (input[i] < '0' || input[i] > '9') {
-                    isNumber = false;
-                    break;
-                }
-                idx = idx * 10 + (input[i] - '0');
-                if (idx > 100) { idx = 100; break; }
-            }
-
-            if (!isNumber) {
-                std::cout << "Enter a number.\n";
-                continue;
-            }
-            if (idx == 0) {
-                std::cout << "Skipped.\n";
-                chose = true;
-            } else if (idx < 1 || idx > reward.optionCount()) {
-                std::cout << "Invalid choice.\n";
-            } else {
-                std::string cardName = reward.getOptions()[idx - 1]->getName();
-                reward.pickCard(idx - 1, hero);
-                std::cout << "Added " << cardName << " to your deck.\n";
-                chose = true;
-            }
-        }
-    } else {
-        std::cout << "*** Defeat. The tower stands. ***\n";
     }
+
+    clearScreen();
+    std::cout << "*** You've toppled the tower! ***\n";
+    return 0;
+
+run_over:
     return 0;
 }

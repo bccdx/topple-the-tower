@@ -76,3 +76,15 @@ void Deck::discard(Card* card) {
 void Deck::exhaust(Card* card) {
     exhaustPile_.push_back(card);
 }
+
+void Deck::resetForCombat() {
+    for (int i = 0; i < (int)hand_.size(); i++) {
+        drawPile_.push_back(hand_[i]);
+    }
+    hand_.clear();
+    for (int i = 0; i < (int)discardPile_.size(); i++) {
+        drawPile_.push_back(discardPile_[i]);
+    }
+    discardPile_.clear();
+    shuffleDrawPile();
+}

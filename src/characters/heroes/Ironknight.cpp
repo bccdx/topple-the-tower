@@ -4,6 +4,11 @@
 #include "Defend.h"
 #include "Strike.h"
 
+void Ironknight::onCombatEnd() {
+    Hero::onCombatEnd();    // relic effects first
+    heal(COMBAT_END_HEAL);
+}
+
 Ironknight::Ironknight() : Hero("Ironknight", STARTING_HP, STARTING_ENERGY) {
     for (int i = 0; i < NUM_STRIKES; i++) {
         deck_.addCard(new Strike());

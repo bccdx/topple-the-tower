@@ -7,6 +7,8 @@
 #include "Relic.h"
 #include <vector>
 
+class Enemy;
+
 // base for all player characters. owns a Deck, tracks Energy
 class Hero : public Character {
 public:
@@ -31,6 +33,16 @@ public:
     virtual void onTurnStart();
     // discard the hand, then tick down statuses
     virtual void onTurnEnd();
+    // called at the start of combat. applies relic effects that trigger on combat start
+    virtual void onCombatStart(Enemy& enemy);
+    // called after winning a combat. handles relic end-of-combat effects
+    virtual void onCombatEnd();
+
+    // override: applies Paper Krane reduction, triggers Centennial Puzzle
+    virtual void takeDamage(int amount);
+
+    // returns flat retaliation damage from Bronze Scales (3 per relic)
+    int getBronzeScalesDamage() const;
 
     static const int DEFAULT_DRAW = 5;
 
@@ -40,6 +52,8 @@ protected:
     Deck deck_;
     int gold_;
     std::vector<Relic*> relics_;
+    bool puzzleTriggered_;   // centennial puzzle: only fires once per combat
+    bool redSkullActive_;    // red skull: tracks whether the +3 str bonus is applied
 };
 
 #endif
