@@ -8,6 +8,8 @@ class Assassin : public Hero {
 public:
     Assassin();
 
+    HeroType getHeroType() const { return HERO_ASSASSIN; }
+
     static const int STARTING_HP     = 70;
     static const int STARTING_ENERGY = 3;
     static const int NUM_STRIKES     = 5;

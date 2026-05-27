@@ -1,6 +1,7 @@
 // tests/test_relics.cpp
 #include "Relic.h"
 #include "Ironknight.h"
+#include "Assassin.h"
 #include "Slime.h"
 #include "Battle.h"
 
@@ -34,12 +35,12 @@ void test_vajra() {
     std::cout << "PASSED: test_vajra\n";
 }
 
-// Burning Blood (starter relic): hero heals 6 at end of combat
+// Burning Blood: heals 6 at end of combat on any hero that has it (not just Ironknight)
 void test_burning_blood_relic() {
-    Ironknight hero;
+    Assassin hero;
+    giveRelic(hero, RELIC_BURNING_BLOOD);
     hero.takeDamage(20);
     int hpBefore = hero.getCurrentHp();
-    // Ironknight starts with Burning Blood — no need to add it manually
     hero.onCombatEnd();
     assert(hero.getCurrentHp() == hpBefore + 6);
     std::cout << "PASSED: test_burning_blood_relic\n";
@@ -81,15 +82,17 @@ void test_meat_on_the_bone_heals() {
 }
 
 // Meat on the Bone: no heal if HP > 50%
+// hero takes ~10% damage (stays above 50%), so Burning Blood fires but Meat on the Bone doesn't
 void test_meat_on_the_bone_no_heal() {
     Ironknight hero;
     giveRelic(hero, RELIC_MEAT_ON_THE_BONE);
-    // hero is at full HP (above 50%)
+    hero.takeDamage(hero.getMaxHp() / 10);
     int hpBefore = hero.getCurrentHp();
     hero.onCombatEnd();
-    // Ironknight passive also heals, so just check meat on the bone didn't fire
-    // full HP means no meat heal. Ironknight heal may push to max (already there)
-    assert(hero.getCurrentHp() == hpBefore || hero.getCurrentHp() == hero.getMaxHp());
+    // only Burning Blood fires (+6), Meat on the Bone does not
+    int expected = hpBefore + Ironknight::COMBAT_END_HEAL;
+    if (expected > hero.getMaxHp()) expected = hero.getMaxHp();
+    assert(hero.getCurrentHp() == expected);
     std::cout << "PASSED: test_meat_on_the_bone_no_heal\n";
 }
 

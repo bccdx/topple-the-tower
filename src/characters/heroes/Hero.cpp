@@ -65,7 +65,6 @@ void Hero::onTurnEnd() {
 
 void Hero::onCombatStart(Enemy& enemy) {
     puzzleTriggered_ = false;
-    redSkullActive_ = false;
     for (int i = 0; i < (int)relics_.size(); i++) {
         switch (relics_[i]->getRelicType()) {
             case RELIC_VAJRA:

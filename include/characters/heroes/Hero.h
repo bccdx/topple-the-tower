@@ -9,11 +9,15 @@
 
 class Enemy;
 
+enum HeroType { HERO_IRONKNIGHT, HERO_ASSASSIN };
+
 // base for all player characters. owns a Deck, tracks Energy
 class Hero : public Character {
 public:
     Hero(const std::string& name, int maxHp, int maxEnergy);
     virtual ~Hero();
+
+    virtual HeroType getHeroType() const { return HERO_IRONKNIGHT; }
 
     int getMaxEnergy() const     { return maxEnergy_; }
     int getCurrentEnergy() const { return currentEnergy_; }
