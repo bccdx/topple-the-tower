@@ -16,6 +16,7 @@ Battle::~Battle() {
 void Battle::start() {
     turnNumber_ = 1;
     startHeroTurn();
+    hero_.onCombatStart(*enemy_);  // relic combat-start effects after block is cleared
 }
 
 void Battle::startHeroTurn() {
@@ -79,10 +80,21 @@ void Battle::endHeroTurn() {
 }
 
 void Battle::runEnemyTurn() {
+    int heroBefore = hero_.getCurrentHp();
     enemy_->onTurnStart();
     enemy_->takeTurn(hero_, *this);
     refreshState();
     if (state_ != BATTLE_ONGOING) return;
+    // Bronze Scales: deal 3 back if hero lost HP this turn
+    int hpLost = heroBefore - hero_.getCurrentHp();
+    if (hpLost > 0) {
+        int retaliation = hero_.getBronzeScalesDamage();
+        if (retaliation > 0) {
+            enemy_->takeDamage(retaliation);
+            refreshState();
+            if (state_ != BATTLE_ONGOING) return;
+        }
+    }
     enemy_->onTurnEnd();
     enemy_->chooseNextIntent();
 }

@@ -32,33 +32,26 @@ void Reward::setGold(int amount) {
 }
 
 void Reward::awardRelic(Hero& hero) {
-    std::string names[] = {
-        "Burning Blood",
-        "Vajra",
-        "Anchor",
-        "Bronze Scales",
-        "Bag of Marbles",
-        "Centennial Puzzle",
-        "Red Skull",
-        "Meat on the Bone",
-        "Oddly Smooth Stone",
-        "Paper Krane"
+    struct RelicInfo {
+        RelicType type;
+        const char* name;
+        const char* desc;
     };
-    std::string descs[] = {
-        "At the start of combat, heal 6 HP",
-        "Gain 1 Strength at the start of each combat",
-        "Start each combat with 10 Block",
-        "Whenever you take damage, deal 3 back",
-        "At the start of combat, apply 1 Vulnerable to all enemies",
-        "First time you lose HP each combat, draw 3 cards",
-        "While HP is at or below 50%, gain 3 Strength",
-        "If HP is at or below 50% at end of combat, heal 12 HP",
-        "At the start of each combat, gain 1 Dexterity",
-        "Reduce all incoming attack damage by 1"
+    RelicInfo pool[] = {
+        { RELIC_BURNING_BLOOD,     "Burning Blood",     "At the start of combat, heal 6 HP" },
+        { RELIC_VAJRA,             "Vajra",             "Gain 1 Strength at the start of each combat" },
+        { RELIC_ANCHOR,            "Anchor",            "Start each combat with 10 Block" },
+        { RELIC_BRONZE_SCALES,     "Bronze Scales",     "Whenever you lose HP, deal 3 damage back" },
+        { RELIC_BAG_OF_MARBLES,    "Bag of Marbles",    "At the start of combat, apply 1 Vulnerable to the enemy" },
+        { RELIC_CENTENNIAL_PUZZLE, "Centennial Puzzle", "First time you lose HP each combat, draw 3 cards" },
+        { RELIC_RED_SKULL,         "Red Skull",         "While HP is at or below 50%, gain 3 Strength" },
+        { RELIC_MEAT_ON_THE_BONE,  "Meat on the Bone",  "If HP is at or below 50% at end of combat, heal 12 HP" },
+        { RELIC_ODDLY_SMOOTH_STONE,"Oddly Smooth Stone","At the start of each combat, gain 1 Dexterity" },
+        { RELIC_PAPER_KRANE,       "Paper Krane",       "Reduce all incoming attack damage by 1" }
     };
     int poolSize = 10;
     int idx = rand() % poolSize;
-    hero.addRelic(new Relic(names[idx], descs[idx]));
+    hero.addRelic(new Relic(pool[idx].type, pool[idx].name, pool[idx].desc));
 }
 
 void Reward::generateOptions(int n) {
