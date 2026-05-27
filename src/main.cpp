@@ -31,6 +31,24 @@ void clearScreen() {
 // ---- sprites ---------------------------------------------------------------
 // 5 lines each. hero faces right, enemies face left
 
+static const char* SKULL[7] = {
+    "    _____   ",
+    "   /     \\  ",
+    "  / X   X \\ ",
+    " |    ^    |",
+    " |  -----  |",
+    "  \\_______/ ",
+    "   ||| |||  "
+};
+
+static const char* HAPPY_FACE[5] = {
+    "  \\(^o^)/  ",
+    "   (   )   ",
+    "    \\ /   ",
+    "           ",
+    "           "
+};
+
 static const char* HERO_NEUTRAL[5] = {
     "  [O]       ",
     "  ]|[       ",
@@ -137,13 +155,24 @@ static const char* BOSS_ATTACK[5] = {
     "         "
 };
 
+static bool parsePositiveInt(const std::string& s, int& out) {
+    if (s.empty()) return false;
+    out = 0;
+    for (int i = 0; i < (int)s.size(); i++) {
+        if (s[i] < '0' || s[i] > '9') return false;
+        out = out * 10 + (s[i] - '0');
+        if (out > 100) { out = 100; break; }
+    }
+    return true;
+}
+
 static std::string padRight(const std::string& s, int width) {
     if ((int)s.size() >= width) return s;
     return s + std::string(width - (int)s.size(), ' ');
 }
 
 static const char** getHeroSprite(const Hero& h, HeroAnim anim) {
-    bool isAssassin = (h.getName() == "Assassin");
+    bool isAssassin = (h.getHeroType() == HERO_ASSASSIN);
     if (isAssassin) {
         switch (anim) {
             case HERO_ANIM_ATTACK: return ASSASSIN_ATTACK;
@@ -306,15 +335,8 @@ bool doCardReward(Reward& reward, Hero& hero) {
         if (!std::getline(std::cin, input)) return false;
         if (input.size() == 0) { std::cout << "Enter a number.\n"; continue; }
 
-        bool isNumber = true;
         int idx = 0;
-        for (int i = 0; i < (int)input.size(); i++) {
-            if (input[i] < '0' || input[i] > '9') { isNumber = false; break; }
-            idx = idx * 10 + (input[i] - '0');
-            if (idx > 100) { idx = 100; break; }
-        }
-
-        if (!isNumber) { std::cout << "Enter a number.\n"; continue; }
+        if (!parsePositiveInt(input, idx)) { std::cout << "Enter a number.\n"; continue; }
         if (idx == 0) { std::cout << "Skipped.\n"; return true; }
         if (idx < 1 || idx > reward.optionCount()) { std::cout << "Invalid choice.\n"; continue; }
 
@@ -332,8 +354,15 @@ static Hero* selectHero() {
     std::cout << " Topple the Tower\n";
     std::cout << "==============================================\n\n";
     std::cout << "Choose your hero:\n\n";
-    std::cout << "  1) Ironknight  80 HP  |  armored warrior, heals after every fight\n";
-    std::cout << "  2) Assassin    70 HP  |  quick and precise, draws 2 extra cards each combat\n\n";
+    const int COL = 20;
+    std::cout << padRight("  1) Ironknight", COL) << "  2) Assassin\n";
+    for (int i = 0; i < 5; i++) {
+        std::cout << padRight(HERO_NEUTRAL[i], COL) << "  " << ASSASSIN_NEUTRAL[i] << "\n";
+    }
+    std::cout << "\n";
+    std::cout << padRight("  80 HP", COL) << "  70 HP\n";
+    std::cout << padRight("  armored warrior", COL) << "  quick and precise\n";
+    std::cout << padRight("  heals after fights", COL) << "  draws 2 extra cards\n\n";
 
     std::string input;
     while (true) {
@@ -382,7 +411,7 @@ int main() {
                 std::cout << "\n";
             }
             std::cout << "Enter card # to play, or 'e' to end turn > ";
-            if (!std::getline(std::cin, input)) goto run_over;
+            if (!std::getline(std::cin, input)) { delete hero; return 0; }
             if (input == "") continue;
 
             if (input == "e" || input == "E") {
@@ -392,15 +421,8 @@ int main() {
                 continue;
             }
 
-            bool isNumber = true;
             int idx = 0;
-            for (int i = 0; i < (int)input.size(); i++) {
-                if (input[i] < '0' || input[i] > '9') { isNumber = false; break; }
-                idx = idx * 10 + (input[i] - '0');
-                if (idx > 100) { idx = 100; break; }
-            }
-
-            if (!isNumber) {
+            if (!parsePositiveInt(input, idx)) {
                 flash = "Unrecognized input. Type a card number or 'e'.";
             } else {
                 // peek at card type before playing to pick the right animation
@@ -425,13 +447,16 @@ int main() {
 
         clearScreen();
         if (battle.getState() == BATTLE_HERO_LOST) {
+            for (int i = 0; i < 7; i++) std::cout << SKULL[i] << "\n";
+            std::cout << "\n  GAME OVER\n\n";
             std::cout << "*** Defeat. The tower stands. ***\n";
             delete hero;
             return 0;
         }
 
         // hero won this floor
-        std::cout << "*** Floor " << (floor + 1) << " cleared! ***\n\n";
+        for (int i = 0; i < 5; i++) std::cout << HAPPY_FACE[i] << "\n";
+        std::cout << "\n*** Floor " << (floor + 1) << " cleared! ***\n\n";
 
         int hpBefore = hero->getCurrentHp();
         hero->onCombatEnd();
@@ -446,26 +471,25 @@ int main() {
         std::cout << "You earned " << reward.getGold() << " gold.\n";
         hero->earnGold(reward.getGold());
 
+        int relicsBefore = (int)hero->getRelics().size();
         reward.awardRelic(*hero);
-        const std::vector<Relic*>& relics = hero->getRelics();
-        const Relic& r = *relics.back();
-        std::cout << "You found " << r.getName() << ": " << r.getDescription() << "\n\n";
+        if ((int)hero->getRelics().size() > relicsBefore) {
+            const Relic& r = *hero->getRelics().back();
+            std::cout << "You found " << r.getName() << ": " << r.getDescription() << "\n\n";
+        }
 
-        if (!doCardReward(reward, *hero)) goto run_over;
+        if (!doCardReward(reward, *hero)) { delete hero; return 0; }
 
         if (floor < map.roomCount() - 1) {
             hero->getDeck().resetForCombat();
             std::cout << "\nPress Enter to continue to the next floor...";
-            if (!std::getline(std::cin, input)) goto run_over;
+            if (!std::getline(std::cin, input)) { delete hero; return 0; }
         }
     }
 
     clearScreen();
-    std::cout << "*** You've toppled the tower! ***\n";
-    delete hero;
-    return 0;
-
-run_over:
+    for (int i = 0; i < 5; i++) std::cout << HAPPY_FACE[i] << "\n";
+    std::cout << "\n*** You've toppled the tower! ***\n";
     delete hero;
     return 0;
 }
