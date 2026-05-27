@@ -63,7 +63,20 @@ void Reward::awardRelic(Hero& hero) {
         { RELIC_PAPER_KRANE,       "Paper Krane",       "Reduce all incoming attack damage by 1" }
     };
     int poolSize = 10;
-    int idx = rand() % poolSize;
+
+    // build list of indices the hero doesn't already have
+    std::vector<int> available;
+    for (int i = 0; i < poolSize; i++) {
+        bool owned = false;
+        const std::vector<Relic*>& relics = hero.getRelics();
+        for (int j = 0; j < (int)relics.size(); j++) {
+            if (relics[j]->getRelicType() == pool[i].type) { owned = true; break; }
+        }
+        if (!owned) available.push_back(i);
+    }
+
+    if (available.empty()) return;   // hero has everything in the pool
+    int idx = available[rand() % (int)available.size()];
     hero.addRelic(new Relic(pool[idx].type, pool[idx].name, pool[idx].desc));
 }
 
