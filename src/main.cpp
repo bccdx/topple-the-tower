@@ -19,12 +19,133 @@
 #include <iomanip>
 #include <iostream>
 #include <string>
+#include <unistd.h>
 #include <vector>
 
 void clearScreen() {
     // ANSI clear + cursor home. works in most terminals
     std::cout << "\033[2J\033[H";
 }
+
+// ---- sprites ---------------------------------------------------------------
+// 5 lines each. hero faces right, enemies face left
+
+static const char* HERO_NEUTRAL[5] = {
+    "  [O]       ",
+    "  ]|[       ",
+    "   |        ",
+    "  / \\      ",
+    "            "
+};
+static const char* HERO_ATTACK[5] = {
+    "  [O]       ",
+    "  ]======>  ",
+    "   |        ",
+    "  / \\      ",
+    "            "
+};
+static const char* HERO_DEFEND[5] = {
+    "  [O]       ",
+    "  ]|[]      ",
+    "   |        ",
+    "  / \\      ",
+    "            "
+};
+static const char* HERO_SKILL[5] = {
+    "  \\O/      ",
+    "  -|-       ",
+    "   |        ",
+    "  / \\      ",
+    "            "
+};
+
+enum HeroAnim { HERO_ANIM_NONE, HERO_ANIM_ATTACK, HERO_ANIM_DEFEND, HERO_ANIM_SKILL };
+
+static const char* BASIC_NEUTRAL[5] = {
+    "   o   ",
+    "  \\|/ ",
+    "   |   ",
+    "  / \\ ",
+    "       "
+};
+static const char* BASIC_ATTACK[5] = {
+    "   o   ",
+    " <-|/  ",
+    "   |   ",
+    "  / \\ ",
+    "       "
+};
+
+static const char* ELITE_NEUTRAL[5] = {
+    "  [O]  ",
+    "  [|]  ",
+    "   |   ",
+    "  /=\\ ",
+    "       "
+};
+static const char* ELITE_ATTACK[5] = {
+    "  [O]  ",
+    "<=[|]  ",
+    "   |   ",
+    "  /=\\ ",
+    "       "
+};
+
+static const char* BOSS_NEUTRAL[5] = {
+    "   {O}   ",
+    "  =[|]=  ",
+    "    |    ",
+    "  /===\\ ",
+    "         "
+};
+static const char* BOSS_ATTACK[5] = {
+    "   {O}   ",
+    " <=[|]=  ",
+    "    |    ",
+    "  /===\\ ",
+    "         "
+};
+
+static std::string padRight(const std::string& s, int width) {
+    if ((int)s.size() >= width) return s;
+    return s + std::string(width - (int)s.size(), ' ');
+}
+
+static const char** getEnemyNeutralSprite(const Enemy& e) {
+    switch (e.getTier()) {
+        case TIER_ELITE: return ELITE_NEUTRAL;
+        case TIER_BOSS:  return BOSS_NEUTRAL;
+        default:         return BASIC_NEUTRAL;
+    }
+}
+
+static const char** getEnemyAttackSprite(const Enemy& e) {
+    switch (e.getTier()) {
+        case TIER_ELITE: return ELITE_ATTACK;
+        case TIER_BOSS:  return BOSS_ATTACK;
+        default:         return BASIC_ATTACK;
+    }
+}
+
+static void printScene(const Battle& b, HeroAnim heroAnim, bool enemyAtk) {
+    const int COL = 22;
+    const char** heroSpr;
+    switch (heroAnim) {
+        case HERO_ANIM_ATTACK: heroSpr = HERO_ATTACK; break;
+        case HERO_ANIM_DEFEND: heroSpr = HERO_DEFEND; break;
+        case HERO_ANIM_SKILL:  heroSpr = HERO_SKILL;  break;
+        default:               heroSpr = HERO_NEUTRAL; break;
+    }
+    const char** enemySpr = enemyAtk ? getEnemyAttackSprite(b.getEnemy())
+                                     : getEnemyNeutralSprite(b.getEnemy());
+    std::cout << padRight("  " + b.getHero().getName(), COL) << b.getEnemy().getName() << "\n";
+    for (int i = 0; i < 5; i++) {
+        std::cout << padRight(heroSpr[i], COL) << enemySpr[i] << "\n";
+    }
+    std::cout << "\n";
+}
+
+// ---- battle display --------------------------------------------------------
 
 void printStatuses(const Character& c) {
     bool first = true;
@@ -106,12 +227,14 @@ void printHand(const Hero& h) {
     }
 }
 
-void printBattle(const Battle& b, int floor, int totalFloors) {
+void printBattle(const Battle& b, int floor, int totalFloors,
+                 HeroAnim heroAnim = HERO_ANIM_NONE, bool enemyAtk = false) {
     clearScreen();
     std::cout << "==============================================\n";
     std::cout << " Topple the Tower    Floor " << floor << "/" << totalFloors
               << "    Turn " << b.getTurnNumber() << "\n";
     std::cout << "==============================================\n\n";
+    printScene(b, heroAnim, enemyAtk);
     printEnemy(b.getEnemy());
     std::cout << "\n";
     printHero(b.getHero());
@@ -198,6 +321,8 @@ int main() {
             if (input == "") continue;
 
             if (input == "e" || input == "E") {
+                printBattle(battle, floor + 1, map.roomCount(), HERO_ANIM_NONE, true);
+                usleep(220000);
                 battle.endHeroTurn();
                 continue;
             }
@@ -213,8 +338,21 @@ int main() {
             if (!isNumber) {
                 flash = "Unrecognized input. Type a card number or 'e'.";
             } else {
+                // peek at card type before playing to pick the right animation
+                HeroAnim anim = HERO_ANIM_ATTACK;
+                const std::vector<Card*>& hand = battle.getHero().getDeck().getHand();
+                if (idx >= 1 && idx - 1 < (int)hand.size()) {
+                    CardType ct = hand[idx - 1]->getType();
+                    if (ct == CARD_SKILL)  anim = HERO_ANIM_DEFEND;
+                    if (ct == CARD_POWER)  anim = HERO_ANIM_SKILL;
+                }
                 PlayResult result = battle.playCardFromHand(idx - 1);
-                if (!result.success) flash = result.message;
+                if (!result.success) {
+                    flash = result.message;
+                } else {
+                    printBattle(battle, floor + 1, map.roomCount(), anim, false);
+                    usleep(220000);
+                }
             }
         }
 
